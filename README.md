@@ -109,17 +109,6 @@ Only metrics actually computed by the current implementation should be reported 
 
 **Note:** Exact execution steps may depend on the MATLAB release, available toolboxes, dataset paths, and the scripts' current configuration.
 
-## Results and Visualizations
-
-## Clean, Noisy and Enhanced Speech
-![Speech waveform comparison](clean_enhanced_noise_graph.png)
-
-## Spectrogram Comparison
-![Spectrogram comparison](spectogram_ss.png)
-
-## Training Mask Distribution
-![Training mask distribution](training_mask_distribution.png)
-
 ## Limitations
 
 - The current implementation is a working prototype, not a claim of production-ready or research-grade performance.
