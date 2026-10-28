@@ -1,114 +1,114 @@
-# Deep Learning-Based Speech Noise Suppression — MATLAB Working Prototype
+# Speech Background Noise Suppression Using Deep Learning
 
-This prototype follows the project/report architecture and uses a small U-Net-style encoder-decoder by default:
+A MATLAB-based speech enhancement prototype that uses a U-Net-style convolutional neural network to suppress background noise and improve speech quality.
 
-Noisy speech → STFT + feature extraction → CNN spectral-mask estimation → mask + noisy phase → ISTFT → enhanced speech → objective/subjective evaluation.
+## Overview
 
-It is designed as a practical starting point for the System Design Laboratory project. The report specifies 16 kHz speech, supervised clean/noisy training, a convolutional model, STFT/ISTFT reconstruction, and evaluation using PESQ, STOI, SIR and MOS.
+Background noise can reduce speech clarity and make communication difficult. This project explores deep learning-based speech enhancement by estimating a time-frequency mask from noisy speech and using it to reconstruct an enhanced audio signal.
 
-## 1. Requirements
+The prototype implements a workflow involving Short-Time Fourier Transform (STFT), neural-network-based spectral-mask estimation, and Inverse Short-Time Fourier Transform (ISTFT).
 
-Recommended:
-- MATLAB R2023b or newer
+## Objectives
+
+- Develop a deep learning-based speech noise suppression prototype in MATLAB.
+- Estimate a spectral mask to reduce unwanted noise components.
+- Compare noisy and enhanced speech using waveform and spectrogram visualizations.
+- Evaluate enhancement performance using objective speech-quality metrics where supported.
+
+## System Workflow
+
+Noisy Speech → STFT → Magnitude Feature Extraction → U-Net Mask Estimation → Spectral Mask Application → ISTFT → Enhanced Speech → Evaluation
+
+## Technologies Used
+
+- MATLAB
 - Deep Learning Toolbox
 - Signal Processing Toolbox
-- Audio Toolbox (recommended for the full audio workflow)
-- A GPU is strongly recommended for training, but CPU training is supported.
+- Short-Time Fourier Transform (STFT)
+- U-Net-style convolutional neural network
+- Spectral-mask-based speech enhancement
 
-The current MATLAB documentation recommends `trainnet` for new deep-learning workflows; this prototype uses `trainNetwork` because it is broadly compatible across MATLAB releases. The default model is a small U-Net-style spectral-mask estimator; a compact CNN alternative is also included.
+## Methodology
 
-## 2. Dataset layout
+1. **Dataset preparation:** Load clean speech and noise recordings, resample them to the required sampling frequency, and prepare fixed-length audio segments.
+2. **Noisy speech generation:** Mix clean speech with noise at selected signal-to-noise ratios (SNRs).
+3. **Feature extraction:** Apply STFT to represent the audio in the time-frequency domain.
+4. **Model training:** Train a neural network to estimate a spectral mask from noisy-speech magnitude features.
+5. **Speech enhancement:** Apply the predicted mask to the noisy magnitude spectrogram and use the noisy phase for waveform reconstruction.
+6. **Reconstruction:** Apply ISTFT to obtain the enhanced speech waveform.
+7. **Evaluation:** Compare input and enhanced speech using visualizations and available objective metrics.
 
-Create this structure:
+## Model Architecture
 
-data/
-  clean/
-    clean_001.wav
-    clean_002.wav
-    ...
-  noise/
-    noise_001.wav
-    noise_002.wav
-    ...
+The project includes a U-Net-style encoder-decoder model and a compact CNN alternative for spectral-mask estimation.
 
-The clean and noise files do NOT have to have matching names. The dataset builder randomly selects a clean clip and a noise clip, resamples both to 16 kHz, extracts a fixed-length segment, mixes them at a random SNR, and creates the target ideal ratio mask.
+The encoder-decoder design extracts time-frequency features at different resolutions. Skip connections help transfer features between corresponding encoder and decoder stages.
 
-For a final project run, use the Microsoft DNS Challenge speech/noise data as described in the supplied project brief.
+The estimated mask is applied to the noisy speech magnitude spectrum before waveform reconstruction.
 
-## 3. Quick start
+## Repository Structure
 
-1. Put clean speech WAV files in `data/clean`.
-2. Put noise WAV files in `data/noise`.
-3. Open MATLAB in this folder.
-4. Run:
-
-```matlab
-run_demo
+```text
+speech-background-noise-suppression/
+├── build_dataset.m
+├── build_model.m
+├── build_unet_model.m
+├── config.m
+├── enhance_speech.m
+├── evaluate_prototype.m
+├── launch_prototype.m
+├── train_noise_suppressor.m
+├── run_demo.m
+├── prototype_waveform_comparison.png
+├── clean_enhanced_noise_graph.png
+├── spectogram_ss.png
+├── training_mask_distribution.png
+└── README.md
 ```
 
-For a first quick test, the script builds a small dataset, trains a compact CNN, enhances one test mixture, writes the enhanced WAV file, and generates plots.
+## Results and Visualizations
 
-For a more serious run:
+### Clean, Noisy and Enhanced Speech
 
-```matlab
-cfg = config();
-cfg.numTrain = 1000;
-cfg.numVal   = 200;
-cfg.numTest  = 200;
-build_dataset(cfg);
-train_noise_suppressor(cfg);
-evaluate_prototype(cfg);
-```
+This comparison shows the clean reference speech, noisy input, and enhanced output waveform.
 
-Training can take a long time depending on the dataset, network size and hardware.
+![Clean, noisy and enhanced waveform comparison](clean_enhanced_noise_graph.png)
 
-## 4. What the prototype actually learns
+### Spectrogram Comparison
 
-For each 1.04-second audio segment:
+The time-frequency representations help visualize how the speech spectrum changes after enhancement.
 
-- STFT produces a complex spectrogram.
-- The input to the network is normalized noisy magnitude.
-- The target is an Ideal Ratio Mask (IRM):
+![Noisy and enhanced speech spectrograms](spectogram_ss.png)
 
-  IRM = |S_clean| / (|S_clean| + |S_noise| + epsilon)
+### Training Mask Distribution
 
-- The CNN predicts a value between 0 and 1 for every time-frequency bin.
-- The predicted mask is multiplied with the noisy magnitude.
-- The original noisy phase is retained.
-- ISTFT reconstructs the enhanced waveform.
+The histogram illustrates the distribution of spectral-mask values in the training targets.
 
-This directly implements the architecture described in the supplied report.
+![Training mask distribution](training_mask_distribution.png)
 
-## 5. Files
+## Evaluation Metrics
 
-- `config.m` — central parameters.
-- `build_dataset.m` — creates training/validation/test MAT files from clean/noise WAV files.
-- `build_unet_model.m` — default U-Net-style spectral-mask network.
-- `build_model.m` — compact CNN alternative.
-- `train_noise_suppressor.m` — trains and saves the model.
-- `enhance_speech.m` — inference on a noisy WAV file.
-- `evaluate_prototype.m` — objective evaluation and before/after plots.
-- `run_demo.m` — one-command workflow.
-- `prototype_utils/` — reusable audio/STFT/metric helpers.
+The project uses or considers the following metrics, depending on implementation availability:
 
-## 6. Metrics
+- **SNR (Signal-to-Noise Ratio):** Measures signal strength relative to noise.
+- **SNR Improvement:** Measures the change in SNR after enhancement.
+- **STOI (Short-Time Objective Intelligibility):** Estimates speech intelligibility.
+- **SI-SDR (Scale-Invariant Signal-to-Distortion Ratio):** Evaluates the enhanced signal against a reference while accounting for scale.
+- **PESQ (Perceptual Evaluation of Speech Quality):** Estimates perceived speech quality when a compatible implementation is available.
 
-The prototype reports:
-- Input SNR and output SNR.
-- SNR improvement.
-- SIR when clean speech, noise and enhanced speech are available.
-- STOI if the installed MATLAB environment provides a compatible STOI implementation.
-- PESQ if a compatible implementation is installed.
+Only metrics actually computed by the current implementation should be reported as experimental results. Numerical performance values will be added after verification of the evaluation output.
 
-Do not invent PESQ/STOI results for the report. Use the values generated by your actual experiment.
+## How to Run
 
-## 7. Real-time extension
+1. Install MATLAB and the required toolboxes.
+2. Place clean speech WAV files in `data/clean` and noise WAV files in `data/noise`.
+3. Open the project folder in MATLAB.
+4. Review the paths and parameters in `config.m`.
+5. Run `run_demo.m` for the demonstration workflow, or follow the separate dataset-building and training scripts for a full experiment.
+6. Inspect the generated enhanced audio and evaluation plots.
 
-The project brief specifies that frame processing should take less than the selected frame stride for real-time operation. The prototype includes a latency measurement function. A compact model is intentionally used first; once the pipeline works, increase model capacity and profile again.
+**Note:** Exact execution steps may depend on the MATLAB release, available toolboxes, dataset paths, and the scripts' current configuration.
 
-## 8. Important project limitation
-
-This is a working prototype, not a claim of final research-grade performance. The supplied report itself says that exact network hyperparameters are implementation parameters to be finalized during development. Final PESQ/SIR/STOI/MOS values should only be reported after experiments.
 ## Results and Visualizations
 
 ## Clean, Noisy and Enhanced Speech
@@ -119,3 +119,28 @@ This is a working prototype, not a claim of final research-grade performance. Th
 
 ## Training Mask Distribution
 ![Training mask distribution](training_mask_distribution.png)
+
+## Limitations
+
+- The current implementation is a working prototype, not a claim of production-ready or research-grade performance.
+- Speech reconstruction retains the noisy input phase.
+- Performance depends on the training data, noise conditions, network configuration, and available computing resources.
+- Real-time performance must be verified through latency measurements before making real-time processing claims.
+
+## Future Scope
+
+- Evaluate generalization across unseen noise types and SNR levels.
+- Improve speech intelligibility and perceptual quality.
+- Compare U-Net and compact CNN performance.
+- Validate objective metrics against reference implementations.
+- Investigate real-time speech enhancement.
+
+## Acknowledgements
+
+The project draws on established deep learning and time-frequency speech-enhancement techniques. Dataset sources and relevant research references should be credited in the final project documentation.
+
+## Author
+
+**Annant Kaur Virdi**
+
+GitHub: [anna31-kv](https://github.com/anna31-kv)
