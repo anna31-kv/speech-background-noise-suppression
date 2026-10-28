@@ -109,3 +109,13 @@ The project brief specifies that frame processing should take less than the sele
 ## 8. Important project limitation
 
 This is a working prototype, not a claim of final research-grade performance. The supplied report itself says that exact network hyperparameters are implementation parameters to be finalized during development. Final PESQ/SIR/STOI/MOS values should only be reported after experiments.
+## Results and Visualizations
+
+## Clean, Noisy and Enhanced Speech
+![Speech waveform comparison](clean_enhanced_noise_graph.png)
+
+## Spectrogram Comparison
+![Spectrogram comparison](spectogram_ss.png)
+
+## Training Mask Distribution
+![Training mask distribution](training_mask_distribution.png)
